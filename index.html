@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tomato Disease Detection</title>
+</head>
+<body>
+    <h2>Upload Tomato Leaf Image</h2>
+
+    <input type="file" id="file-input" accept="image/*" />
+
+    <div id="chat-box" style="border: 1px solid #ccc; padding: 10px; margin-top: 20px; height: 300px; overflow-y: auto; background-color: #f9f9f9;">
+        <p style="color: #999; font-size: 12px;">Chat will appear here...</p>
+    </div>
+
+    <script>
+        function addChatMessage(message, isUser = false) {
+            const chatBox = document.getElementById("chat-box");
+            const messageDiv = document.createElement("div");
+            messageDiv.style.marginBottom = "10px";
+            messageDiv.style.padding = "8px";
+            messageDiv.style.borderRadius = "5px";
+            messageDiv.style.backgroundColor = isUser ? "#e3f2fd" : "#f5f5f5";
+            messageDiv.style.textAlign = isUser ? "right" : "left";
+            messageDiv.innerHTML = message;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        document.getElementById("file-input").onchange = async function() {
+            let file = this.files[0];
+            if (!file) return;
+
+            addChatMessage(`<strong>User:</strong> Uploaded ${file.name}`, true);
+
+            let formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                let res = await fetch("http://127.0.0.1:8000/predict", {
+                    method: "POST",
+                    body: formData
+                });
+
+                let data = await res.json();
+                addChatMessage(`<strong>Disease:</strong> ${data.predicted_class}<br/><strong>Confidence:</strong> ${data.confidence}`);
+            } catch (error) {
+                addChatMessage(`<strong>Error:</strong> ${error.message}`);
+            }
+        };
+    </script>
+</body>
+</html>
